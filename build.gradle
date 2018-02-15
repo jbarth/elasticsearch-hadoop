@@ -142,8 +142,8 @@ ext.manifestTemplate = manifest {
 allprojects { Project project ->
 
     compileJava {
-        sourceCompatibility = 1.6
-        targetCompatibility = 1.6 
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
     }
     
     compileJava.options*.compilerArgs = [
@@ -151,8 +151,8 @@ allprojects { Project project ->
     ]
     
     compileTestJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
     }
     
     sourceSets.test.resources.srcDirs = ["src/test/resources", "src/test/java"]
@@ -243,8 +243,8 @@ allprojects { Project project ->
             // but ES 5.0 is JDK8 
             javaRuntimeName = "JavaSE-1.8"
             // specify again the compatibility to override the default JavaRE settings
-            sourceCompatibility = 1.6
-            targetCompatibility = 1.6
+            sourceCompatibility = 1.8
+            targetCompatibility = 1.8
         }
     }
     
@@ -465,6 +465,8 @@ project(":elasticsearch-hadoop-mr") {
     dependencies {
         provided(hadoopClient)
         provided("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion")
+
+        provided("com.amazonaws:aws-java-sdk:$awsVersion")
         
         // Testing
         if (hadoopVersion.contains("1.0.")) {
@@ -633,8 +635,8 @@ void baseSparkProject(Project target, String sparkVersion) {
             "-Ywarn-numeric-widen"
         ]
 
-        sourceCompatibility = 1.6
-        targetCompatibility = 1.6
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
     }
     
     println "Spark $sparkVersion compiled using Scala $scalaMajorVersion [$scalaVersion]"

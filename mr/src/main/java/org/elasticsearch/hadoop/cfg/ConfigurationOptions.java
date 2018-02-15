@@ -27,6 +27,9 @@ import org.elasticsearch.hadoop.serialization.field.DefaultParamsExtractor;
  */
 public interface ConfigurationOptions {
 
+    String ES_AWS_SIGN = "es.aws.sign";
+    String ES_AWS_REGION = "es.aws.region";
+
     /** Elasticsearch host **/
     String ES_NODES = "es.nodes";
     String ES_NODES_DEFAULT = "localhost";

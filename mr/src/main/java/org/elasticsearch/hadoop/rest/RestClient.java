@@ -507,7 +507,7 @@ public class RestClient implements Closeable, StatsAware {
                         IOUtils.asStringAlways(response.body()));
             }
 
-            throw new EsHadoopInvalidRequest(msg);
+            throw new EsHadoopInvalidRequest("Status: " + response.status() + " Message: " +msg);
         }
     }
 

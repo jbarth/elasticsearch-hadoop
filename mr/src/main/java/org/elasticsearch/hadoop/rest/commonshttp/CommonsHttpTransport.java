@@ -34,6 +34,7 @@ import org.elasticsearch.hadoop.EsHadoopIllegalStateException;
 import org.elasticsearch.hadoop.cfg.ConfigurationOptions;
 import org.elasticsearch.hadoop.cfg.Settings;
 import org.elasticsearch.hadoop.rest.*;
+import org.elasticsearch.hadoop.rest.commonshttp.aws.AwsRequestSigner;
 import org.elasticsearch.hadoop.rest.stats.Stats;
 import org.elasticsearch.hadoop.rest.stats.StatsAware;
 import org.elasticsearch.hadoop.util.ByteSequence;
@@ -47,6 +48,10 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.Locale;
+
+import static org.elasticsearch.hadoop.cfg.ConfigurationOptions.ES_AWS_REGION;
+import static org.elasticsearch.hadoop.cfg.ConfigurationOptions.ES_AWS_SIGN;
+import static org.elasticsearch.hadoop.cfg.ConfigurationOptions.ES_NODES;
 
 /**
  * Transport implemented on top of Commons Http. Provides transport retries.
@@ -71,6 +76,7 @@ public class CommonsHttpTransport implements Transport, StatsAware {
     private final boolean sslEnabled;
     private final String pathPrefix;
     private final Settings settings;
+    private final AwsRequestSigner awsRequestSigner;
 
     private static class ResponseInputStream extends DelegatingInputStream implements ReusableInputStream {
 
@@ -138,6 +144,12 @@ public class CommonsHttpTransport implements Transport, StatsAware {
     }
 
     public CommonsHttpTransport(Settings settings, String host) {
+        boolean sign = settings.getProperty(ES_AWS_SIGN) != null && Boolean.parseBoolean(settings.getProperty(ES_AWS_SIGN));
+        String region = settings.getProperty(ES_AWS_REGION);
+        String esHost = settings.getProperty(ES_NODES);
+
+        this.awsRequestSigner = new AwsRequestSigner(region, sign, esHost);
+
         this.settings = settings;
         httpInfo = host;
         sslEnabled = settings.getNetworkSSLEnabled();
@@ -475,7 +487,13 @@ public class CommonsHttpTransport implements Transport, StatsAware {
 
         long start = System.currentTimeMillis();
         try {
-            client.executeMethod(http);
+            if (awsRequestSigner.isEnabled()) {
+                HostConfiguration hostConfiguration= new HostConfiguration();
+                awsRequestSigner.sign(http, request, hostConfiguration);
+                client.executeMethod(hostConfiguration, http);
+            } else {
+                client.executeMethod(http);
+            }
         } finally {
             stats.netTotalTime += (System.currentTimeMillis() - start);
         }
